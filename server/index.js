@@ -1,34 +1,57 @@
-// Import required modules
-const express = require('express');
-const cors = require('cors');
+// Importing modules
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-// Create an Express app
+// Configuring dotenv
+dotenv.config();
+
+// Create express app
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-const cors = require('cors');
-app.use(cors());  // Enable CORS for all origins
-
-// Use CORS middleware to allow requests from other origins (like React)
+// Middleware
 app.use(cors());
-
-// Middleware to parse JSON bodies from POST requests
 app.use(express.json());
 
-// Basic route to test the server
-app.get('/api', (req, res) => {
-  res.json({ message: 'Hello from the backend!' });
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log('MongoDB Connected Successfully 🚀');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+})
+.catch((err) => console.error('MongoDB Connection Error:', err));
+
+// Define User Schema
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
 });
 
-// Example POST route for Sign Up (you can add your logic here)
-app.post('/api/signup', (req, res) => {
+// Create User Model
+const User = mongoose.model('User', userSchema);
+
+// Routes
+app.post('/api/signup', async (req, res) => {
   const { name, email, password } = req.body;
-  // Handle sign-up logic, such as saving the user to the database
-  res.json({ success: true, message: 'User registered successfully' });
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "User already exists" });
+    }
+
+    const newUser = new User({ name, email, password });
+    await newUser.save();
+
+    res.status(201).json({ success: true, message: "User created successfully" });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ success: false, message: "Error during Sign Up" });
+  }
 });
-
-// Start the server on port 5000
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
-});
-
-

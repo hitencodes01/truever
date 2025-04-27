@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import SignUp from './SignUp';  // Import the SignUp component
+import UserDashboard from './UserDashboard';  // Import your new user interface after login
 
 const Login = () => {
   const [showSignUp, setShowSignUp] = useState(false); // State to toggle between forms
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to check if user is logged in
 
   const handleToggleForm = () => {
     setShowSignUp(!showSignUp); // Toggle form display
@@ -25,6 +27,7 @@ const Login = () => {
 
       const result = await response.json();
       if (result.success) {
+        setIsLoggedIn(true); // Set logged-in state to true
         console.log('Login successful!');
       } else {
         console.log('Invalid credentials!');
@@ -37,11 +40,14 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
-        {showSignUp ? (
-          // Show SignUp component
+        {isLoggedIn ? (
+          // Show the User Dashboard after login
+          <UserDashboard />
+        ) : showSignUp ? (
+          // Show SignUp component if toggled
           <SignUp />
         ) : (
-          // Show Login form
+          // Show Login form if not logged in and not on SignUp page
           <>
             <h2 className="text-2xl font-semibold text-center mb-6 text-blue-600">Log In</h2>
             <form onSubmit={handleLogin}>
